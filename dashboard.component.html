@@ -1,0 +1,336 @@
+<!-- Dashboard Header -->
+<header class="dashboard-header">
+  <div class="header-content">
+    <h1>{{ profile?.Name }} Portal</h1>
+    
+    <div class="header-actions">
+      <!-- Logout Button -->
+      <button mat-button color="warn" class="logout-btn" (click)="logout()" title="Logout">
+        <mat-icon>logout</mat-icon>
+        Logout
+      </button>
+      
+      <!-- Profile Container with Sidebar -->
+      <div class="profile-container" 
+           (mouseenter)="showProfileSidebar = true" 
+           (mouseleave)="showProfileSidebar = false">
+        <img src="assets/icons/profile.svg" 
+             alt="Profile Icon" 
+             height="40"
+             class="profile-icon" 
+             title="View Profile">
+        
+        <!-- Animated Profile Sidebar -->
+        <div class="profile-sidebar" 
+             [class.active]="showProfileSidebar"
+             (mouseenter)="showProfileSidebar = true"
+             (mouseleave)="showProfileSidebar = false">
+          <div class="profile-sidebar-content">
+            <div class="profile-header-sidebar">
+              <div class="profile-avatar">
+                <mat-icon class="avatar-icon">person</mat-icon>
+              </div>
+              <h3 class="profile-name">{{ profile?.Name }}</h3>
+              <p class="profile-id">ID: {{ profile?.Vendorid }}</p>
+            </div>
+            
+            <div class="profile-details">
+              <div class="detail-group">
+                <div class="detail-item">
+                  <mat-icon class="detail-icon">location_on</mat-icon>
+                  <div class="detail-content">
+                    <span class="detail-label">Address</span>
+                    <span class="detail-value">{{ profile?.Street }}</span>
+                  </div>
+                </div>
+                
+                <div class="detail-item">
+                  <mat-icon class="detail-icon">location_city</mat-icon>
+                  <div class="detail-content">
+                    <span class="detail-label">City</span>
+                    <span class="detail-value">{{ profile?.City }}</span>
+                  </div>
+                </div>
+                
+                <div class="detail-item">
+                  <mat-icon class="detail-icon">map</mat-icon>
+                  <div class="detail-content">
+                    <span class="detail-label">Region</span>
+                    <span class="detail-value">{{ profile?.Region }}</span>
+                  </div>
+                </div>
+                
+                <div class="detail-item">
+                  <mat-icon class="detail-icon">mail</mat-icon>
+                  <div class="detail-content">
+                    <span class="detail-label">Postal Code</span>
+                    <span class="detail-value">{{ profile?.Postcode }}</span>
+                  </div>
+                </div>
+                
+                <div class="detail-item">
+                  <mat-icon class="detail-icon">flag</mat-icon>
+                  <div class="detail-content">
+                    <span class="detail-label">Country</span>
+                    <span class="detail-value">{{ profile?.Country }}</span>
+                  </div>
+                </div>
+                
+                <div class="detail-item" *ngIf="profile?.Stcd1">
+                  <mat-icon class="detail-icon">receipt</mat-icon>
+                  <div class="detail-content">
+                    <span class="detail-label">Tax Number</span>
+                    <span class="detail-value">{{ profile?.Stcd1 }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- Main Dashboard Content -->
+<main class="dashboard-content">
+  <!-- Quick Access Tiles -->
+  <div class="quick-access-tiles">
+    <div class="tile" (click)="showSection('rfq')">
+      <div class="tile-icon">
+        <img src="assets/icons/rfq-icon.png" class="tile-image">
+      </div>
+      <div class="tile-content">
+        <h3>Request for Quotations</h3>
+        <p>{{ getUniqueRFQs().length }} active</p>
+      </div>
+      <button class="tile-action">View RFQs</button>
+    </div>
+    
+    <div class="tile" (click)="showSection('po')">
+      <div class="tile-icon">
+        <img src="assets/icons/po-icon.png" class="tile-image">
+      </div>
+      <div class="tile-content">
+        <h3>Purchase Orders</h3>
+        <p>{{ getUniquePOs().length }} active</p>
+      </div>
+      <button class="tile-action">View POs</button>
+    </div>
+    
+    <div class="tile" (click)="showSection('gr')">
+      <div class="tile-icon">
+        <img src="assets/icons/gr-icon.png" class="tile-image">
+      </div>
+      <div class="tile-content">
+        <h3>Goods Receipts</h3>
+        <p>{{ getUniqueGRPoNos().length }} active</p>
+      </div>
+      <button class="tile-action">View GRs</button>
+    </div>
+  </div>
+
+  <!-- RFQ Section -->
+  <div *ngIf="activeSection === 'rfq'" class="data-section">
+    <div class="section-header">
+      <h2>RFQ Details</h2>
+      <button class="close-btn" (click)="activeSection = ''">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+    
+    <div *ngIf="isRFQLoading" class="loading-spinner">
+      <mat-spinner diameter="50"></mat-spinner>
+    </div>
+    
+    <div *ngIf="!isRFQLoading">
+      <div *ngIf="rfqs.length > 0; else noRFQ" class="table-responsive">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>RFQ ID</th>
+              <th>Date</th>
+              <th>Currency</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <ng-container *ngFor="let rfq of getUniqueRFQs()">
+              <tr>
+                <td>{{ rfq.RfqId }}</td>
+                <td>{{ rfq.DocDate | date:'dd-MM-yyyy' }}</td>
+                <td>{{ rfq.Currency }}</td>
+                <td>
+                  <button (click)="togglePoItems(rfq.RfqId)">
+                    View Details
+                  </button>
+                </td>
+              </tr>
+            </ng-container>
+          </tbody>
+        </table>
+      </div>
+      <ng-template #noRFQ>
+        <div class="no-data">No RFQ data found.</div>
+      </ng-template>
+    </div>
+  </div>
+
+  <!-- PO Section -->
+  <div *ngIf="activeSection === 'po'" class="data-section">
+    <div class="section-header">
+      <h2>Purchase Orders</h2>
+      <button class="close-btn" (click)="activeSection = ''">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+    
+    <div *ngIf="isPOLoading" class="loading-spinner">
+      <mat-spinner diameter="50"></mat-spinner>
+    </div>
+    
+    <div *ngIf="!isPOLoading">
+      <div *ngIf="getUniquePOs().length > 0; else noPO" class="table-responsive">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Purchase Order No</th>
+              <th>Date</th>
+              <th>Currency</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <ng-container *ngFor="let po of getUniquePOs()">
+              <tr>
+                <td>{{ po.PoId }}</td>
+                <td>{{ po.DocDate | date:'dd-MM-yyyy' }}</td>
+                <td>{{ po.Currency }}</td>
+                <td>
+                  <button (click)="togglePoItems(po.PoId)">
+                    View Details
+                  </button>
+                </td>
+              </tr>
+            </ng-container>
+          </tbody>
+        </table>
+      </div>
+      <ng-template #noPO>
+        <div class="no-data">No PO data found.</div>
+      </ng-template>
+    </div>
+  </div>
+
+  <!-- GR Section -->
+  <div *ngIf="activeSection === 'gr'" class="data-section">
+    <div class="section-header">
+      <h2>Goods Receipt Details</h2>
+      <button class="close-btn" (click)="activeSection = ''">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+    
+    <div *ngIf="isGRLoading" class="loading-spinner">
+      <mat-spinner diameter="50"></mat-spinner>
+    </div>
+    
+    <div *ngIf="!isGRLoading">
+      <div *ngIf="getUniqueGRPoNos().length > 0; else noGR" class="table-responsive">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Purchase No</th>
+              <th>GR No</th>
+              <th>Posting Date</th>
+              <th>Entry Date</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <ng-container *ngFor="let poNo of getUniqueGRPoNos()">
+              <tr>
+                <td>{{ poNo }}</td>
+                <td>{{ getFirstGR(poNo)?.grNumber }}</td>
+                <td>{{ getFirstGR(poNo)?.postingDate | date:'dd-MM-yyyy' }}</td>
+                <td>{{ getFirstGR(poNo)?.entryDate | date:'dd-MM-yyyy' }}</td>
+                <td>
+                  <button (click)="togglePoItems(poNo)">
+                    View Details
+                  </button>
+                </td>
+              </tr>
+            </ng-container>
+          </tbody>
+        </table>
+      </div>
+      <ng-template #noGR>
+        <div class="no-data">No GR data found.</div>
+      </ng-template>
+    </div>
+  </div>
+</main>
+
+<!-- Bottom Finance Button -->
+<div class="finance-button-container">
+    <button style="width: 200px;"mat-fab color="accent" (click)="goToFinance()" class="finance-button" title="View Finance">
+        <mat-icon>account_balance</mat-icon>
+        <span>Finance Portal</span>
+    </button>
+</div>
+
+<!-- Floating Item Details Card -->
+<div *ngIf="showItemDetails" class="item-details-modal">
+  <div class="item-details-card">
+    <div class="item-details-header">
+      <h3>Items for {{ activeSection | uppercase}}: {{ expandedPoId }}</h3>
+      <button class="close-details-btn" (click)="closeItemDetails()">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+    <div class="item-details-content">
+      <table class="item-details-table">
+        <thead>
+          <tr>
+            <th *ngIf="activeSection === 'rfq' || activeSection === 'po'">Item No</th>
+            <th>Material No</th>
+            <th>Description</th>
+            <th>Quantity</th>
+            <th>Unit</th>
+            <th *ngIf="activeSection === 'rfq' || activeSection === 'po'">Unit Price</th>
+            <th *ngIf="activeSection === 'po'">Net Price</th>
+            <th *ngIf="activeSection === 'rfq' || activeSection === 'po'">Delivery Date</th>
+            <th *ngIf="activeSection === 'gr'">Posting Date</th>
+            <th *ngIf="activeSection === 'gr'">Entry Date</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let item of currentItems">
+            <td *ngIf="activeSection === 'rfq' || activeSection === 'po'">{{ item.ItemNo || item.itemNo }}</td>
+            <td>{{ item.Material || item.materialNo }}</td>
+            <td>{{ item.Description || item.description }}</td>
+            <td>{{ item.Quantity || item.quantity }}</td>
+            <td>{{ item.Unit || item.unit }}</td>
+            <td *ngIf="activeSection === 'rfq' || activeSection === 'po'">{{ item.UnitPrice || item.unitPrice }}</td>
+            <td *ngIf="activeSection === 'po'">{{ item.NetPrice || item.netPrice }}</td>
+            <td *ngIf="activeSection === 'rfq' || activeSection === 'po'">{{ (item.DeliveryDate || item.deliveryDate) | date:'dd-MM-yyyy' }}</td>
+            <td *ngIf="activeSection === 'gr'">{{ item.postingDate | date:'dd-MM-yyyy' }}</td>
+            <td *ngIf="activeSection === 'gr'">{{ item.entryDate | date:'dd-MM-yyyy' }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Logout Confirmation -->
+<div *ngIf="showLogoutConfirm" class="logout-modal">
+  <div class="modal-content">
+    <h3>Logout Confirmation</h3>
+    <p>Are you sure you want to logout?</p>
+    <div class="modal-actions">
+      <button (click)="cancelLogout()">Cancel</button>
+      <button class="confirm-btn" (click)="confirmLogout()">Logout</button>
+    </div>
+  </div>
+</div>
